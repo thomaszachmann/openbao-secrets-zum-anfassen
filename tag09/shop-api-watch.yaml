@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-watch
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-watch}
+  template:
+    metadata:
+      labels: {app: shop-api-watch}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: app
+        image: busybox:1.37
+        command: ["sh", "-c"]
+        args:
+        - |
+          F=/etc/shop/db_password
+          OLD=$(cat $F); echo "$(date +%T) start: ***${OLD#lab-db-pw-}"
+          while sleep 5; do            # Polling: robust, einfach
+            NEW=$(cat $F)
+            if [ "$NEW" != "$OLD" ]; then
+              echo "$(date +%T) neu geladen: ***${NEW#lab-db-pw-}"
+              OLD=$NEW                 # hier: DB-Pool neu aufbauen
+            fi
+          done
+        volumeMounts:
+        - {name: db, mountPath: /etc/shop, readOnly: true}
+      - name: inotify
+        image: busybox:1.37
+        # beobachtet das Verzeichnis, nicht die Datei: kubelet tauscht Symlinks
+        command: ["inotifyd", "-", "/etc/shop:nmdy"]
+        volumeMounts:
+        - {name: db, mountPath: /etc/shop, readOnly: true}
+      volumes:
+      - name: db
+        secret: {secretName: shop-db}

@@ -1,0 +1,18 @@
+# Tag 3: alle Secrets unter shop/ suchen (dataFrom.find) – braucht list-Rechte
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-find
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-find
+  dataFrom:
+    - find:
+        path: shop
+        name:
+          regexp: "^shop/.*"

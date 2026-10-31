@@ -1,0 +1,34 @@
+# Tag 15: Direkt-Leser mit curl, Login per projiziertem Token (Rolle shop-loop)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-loop
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-loop}
+  template:
+    metadata:
+      labels: {app: shop-api-loop}
+    spec:
+      terminationGracePeriodSeconds: 1
+      serviceAccountName: shop-api
+      automountServiceAccountToken: false
+      containers:
+        - name: app
+          image: curlimages/curl:8.22.0
+          command: ["sh", "/loop/loop.sh"]
+          volumeMounts:
+            - {name: loop, mountPath: /loop}
+            - {name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}
+      volumes:
+        - name: loop
+          configMap: {name: shop-loop}
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

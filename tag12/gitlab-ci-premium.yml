@@ -1,0 +1,28 @@
+variables:
+  VAULT_SERVER_URL: https://openbao.example.com
+  VAULT_AUTH_PATH: jwt-gitlab      # Default wäre "jwt"
+  VAULT_AUTH_ROLE: shop-deploy
+
+deploy:
+  stage: deploy
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  id_tokens:
+    OPENBAO_ID_TOKEN:
+      aud: https://openbao.lab.example   # = bound_audiences der Rolle (Drill 3)
+  secrets:
+    REGISTRY_PASSWORD:
+      vault: ci/deploy/registry_password@secret   # KV v2: secret/data/ci/deploy
+      token: $OPENBAO_ID_TOKEN
+    KUBE_TOKEN:
+      vault:
+        engine:
+          name: kv-v2
+          path: secret
+        path: ci/deploy
+        field: kubeconfig_token
+      file: false
+      token: $OPENBAO_ID_TOKEN
+  script:
+    - docker login registry.example.com -u ci --password-stdin < "$REGISTRY_PASSWORD"

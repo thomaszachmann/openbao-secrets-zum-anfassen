@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-py
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-py}
+  template:
+    metadata:
+      labels: {app: shop-api-py}
+    spec:
+      serviceAccountName: shop-api
+      automountServiceAccountToken: false   # API-Token braucht die App nicht
+      containers:
+      - name: app
+        image: python:3.13-alpine
+        # Lab-Abkürzung: hvac beim Start installieren (produktiv: ins Image bauen)
+        command: ["sh", "-c"]
+        args:
+        - pip install -q --root-user-action=ignore hvac==2.4.0
+          && python -u /app/shop_app.py
+        env:
+        - {name: BAO_ADDR, value: "http://openbao.openbao.svc:8200"}
+        - {name: BAO_ROLE, value: "shop-api-short"}
+        volumeMounts:
+        - {name: code, mountPath: /app}
+        - {name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}
+      volumes:
+      - name: code
+        configMap: {name: shop-app-code}
+      - name: bao-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: openbao        # muss zur Rolle passen
+              expirationSeconds: 600   # kubelet erneuert rechtzeitig

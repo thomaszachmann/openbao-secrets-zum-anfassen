@@ -1,0 +1,29 @@
+# Tag 6, Drill 5: zusätzlich als Kubernetes-Secret spiegeln (nur solange gemountet)
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: shop-api-bao
+  namespace: shop
+spec:
+  provider: openbao
+  secretObjects:
+    - secretName: shop-api-csi
+      type: Opaque
+      data:
+        - objectName: db_password
+          key: DB_PASSWORD
+        - objectName: api_key
+          key: API_KEY
+  parameters:
+    baoAddress: "http://openbao.openbao.svc:8200"
+    roleName: "shop-api"
+    audience: "openbao"
+    objects: |
+      - objectName: "db_password"
+        secretPath: "secret/data/shop/api"
+        secretKey: "db_password"
+      - objectName: "api_key"
+        secretPath: "secret/data/shop/api"
+        secretKey: "api_key"
+      - objectName: "stripe.json"
+        secretPath: "secret/data/shop/stripe"

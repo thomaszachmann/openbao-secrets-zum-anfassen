@@ -1,0 +1,15 @@
+# Tag 7, Challenge: Zertifikat für postgres.shop.svc (commonName ist Pflicht!)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: postgres-tls
+  namespace: shop
+spec:
+  secretName: postgres-tls
+  commonName: postgres.shop.svc
+  dnsNames:
+    - postgres.shop.svc
+  duration: 24h
+  issuerRef:
+    name: openbao
+    kind: Issuer

@@ -1,0 +1,11 @@
+{
+  "iss": "https://gitlab.lab.example", "aud": "https://openbao.lab.example",
+  "sub": "project_path:acme/shop:ref_type:branch:ref:main",
+  "namespace_id": "7", "namespace_path": "acme",
+  "project_id": "42", "project_path": "acme/shop",
+  "user_login": "zachmann", "pipeline_id": "1234", "pipeline_source": "push",
+  "job_id": "5678", "ref": "main", "ref_type": "branch", "ref_path": "refs/heads/main",
+  "ref_protected": "true", "environment": "production",
+  "environment_protected": "true", "deployment_tier": "production",
+  "runner_environment": "self-hosted"
+}

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-agent
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-agent}
+  template:
+    metadata:
+      labels: {app: shop-api-agent}
+    spec:
+      serviceAccountName: shop-api
+      automountServiceAccountToken: false
+      containers:
+      - name: app
+        image: quay.io/openbao/openbao:2.7.1   # Lab: bringt bao und sh mit
+        command: ["bao", "agent", "-config=/etc/agent/agent-exec.hcl"]
+        workingDir: /etc/agent
+        env:
+        - {name: BAO_ADDR, value: "http://openbao.openbao.svc:8200"}
+        volumeMounts:
+        - {name: agent, mountPath: /etc/agent}
+        - {name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}
+      volumes:
+      - name: agent
+        configMap: {name: shop-agent, defaultMode: 0555}
+      - name: bao-token
+        projected:
+          sources:
+          - serviceAccountToken: {path: token, audience: openbao,
+              expirationSeconds: 600}

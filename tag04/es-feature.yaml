@@ -1,0 +1,18 @@
+# Tag 4: deletionPolicy Delete – K8s-Secret verschwindet mit dem OpenBao-Secret
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-feature
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-feature
+    creationPolicy: Owner
+    deletionPolicy: Delete
+  dataFrom:
+    - extract:
+        key: shop/feature

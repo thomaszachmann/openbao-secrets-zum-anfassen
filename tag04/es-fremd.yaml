@@ -1,0 +1,18 @@
+# Tag 4: Versuch aus fremdem Namespace über den ClusterSecretStore
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: klau-stripe
+  namespace: fremd
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao-shop
+  target:
+    name: klau-stripe
+  data:
+    - secretKey: STRIPE_TOKEN
+      remoteRef:
+        key: shop/stripe
+        property: token

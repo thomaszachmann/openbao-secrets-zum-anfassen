@@ -1,0 +1,34 @@
+# Tag 6, Drill 5: App nutzt das gespiegelte Secret als Env – Volume bleibt Pflicht
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api}
+  template:
+    metadata:
+      labels: {app: shop-api}
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", "echo start mit API_KEY=$API_KEY; exec sleep 3600"]
+          envFrom:
+            - secretRef:
+                name: shop-api-csi
+          volumeMounts:
+            - name: secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: shop-api-bao

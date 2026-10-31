@@ -1,0 +1,25 @@
+# Pod mit projiziertem SA-Token für OpenBao (Audience openbao, 10 min gültig)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: login-test
+  namespace: shop
+spec:
+  serviceAccountName: shop-api
+  automountServiceAccountToken: false
+  containers:
+    - name: curl
+      image: curlimages/curl:8.22.0
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: bao-token
+          mountPath: /var/run/secrets/openbao
+          readOnly: true
+  volumes:
+    - name: bao-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              audience: openbao
+              expirationSeconds: 600

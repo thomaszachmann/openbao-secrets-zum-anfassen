@@ -1,0 +1,40 @@
+# Tag 15, Drill 2 (Auslöser): neuer Worker mit eigenem ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shop-worker
+  namespace: shop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-worker
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-worker}
+  template:
+    metadata:
+      labels: {app: shop-worker}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "shop-api"
+        vault.hashicorp.com/agent-service-account-token-volume-name: "bao-token"
+        vault.hashicorp.com/agent-inject-secret-stripe: "secret/data/shop/stripe"
+        vault.hashicorp.com/agent-pre-populate-only: "true"
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-worker
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", "sleep 3600"]
+      volumes:
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

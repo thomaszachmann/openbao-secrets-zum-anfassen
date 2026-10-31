@@ -1,0 +1,50 @@
+# Tag 7: Agent holt dynamische DB-Credentials (Rolle shop-ro-short), erneuert die
+# Lease und rendert neu. Eigenes Deployment shop-api-pg, eigene Rolle shop-api-db
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-pg
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-pg}
+  template:
+    metadata:
+      labels: {app: shop-api-pg}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "shop-api-db"
+        vault.hashicorp.com/agent-service-account-token-volume-name: "bao-token"
+        vault.hashicorp.com/agent-inject-secret-db: "database/creds/shop-ro-short"
+        vault.hashicorp.com/agent-inject-template-db: |
+          {{- with secret "database/creds/shop-ro-short" -}}
+          export PGUSER="{{ .Data.username }}"
+          export PGPASSWORD="{{ .Data.password }}"
+          {{- end }}
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: postgres:16-alpine
+          env:
+            - {name: PGHOST, value: postgres.shop.svc}
+            - {name: PGDATABASE, value: shop}
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                . /vault/secrets/db
+                echo "$(date +%T) $(psql -tAc 'select current_user' 2>&1)"
+                sleep 15
+              done
+      volumes:
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

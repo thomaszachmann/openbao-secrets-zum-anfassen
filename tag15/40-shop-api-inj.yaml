@@ -1,0 +1,44 @@
+# Tag 15: Injector-Variante (wie Tag 5, Drill 4) als shop-api-inj
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-inj
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-inj}
+  template:
+    metadata:
+      labels: {app: shop-api-inj}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "shop-api"
+        vault.hashicorp.com/agent-service-account-token-volume-name: "bao-token"
+        vault.hashicorp.com/agent-inject-secret-env: "secret/data/shop/api"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{- with secret "secret/data/shop/api" -}}
+          export DB_USER="{{ .Data.data.db_user }}"
+          export DB_PASSWORD="{{ .Data.data.db_password }}"
+          export API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-perms-env: "0400"
+        vault.hashicorp.com/template-static-secret-render-interval: "20s"
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - . /vault/secrets/env && echo "start als $DB_USER" && exec sleep 3600
+      volumes:
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-helm}
+  template:
+    metadata:
+      labels: {app: shop-api-helm}
+      annotations:
+        # ändert sich der gerenderte Secret-Inhalt, ändert sich das Pod-Template
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") .
+          | sha256sum }}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: app
+        image: busybox:1.37
+        command: ["sh", "-c", "echo env=$DB_PASSWORD; sleep 3600"]
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: shop-db-helm, key: db_password}

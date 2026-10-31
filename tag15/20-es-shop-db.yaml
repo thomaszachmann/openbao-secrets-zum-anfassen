@@ -1,0 +1,13 @@
+# Tag 15: ESO hält das K8s-Secret shop-db für shop-api (Tag 9) aktuell
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-db
+  namespace: shop
+spec:
+  refreshInterval: 15s          # Lab: kurz, damit Rotationen schnell ankommen
+  secretStoreRef: {kind: SecretStore, name: openbao}
+  target: {name: shop-db}
+  data:
+  - secretKey: db_password
+    remoteRef: {key: shop/api, property: db_password}

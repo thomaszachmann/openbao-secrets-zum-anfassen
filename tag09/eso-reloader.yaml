@@ -1,0 +1,56 @@
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: openbao
+  namespace: shop
+spec:
+  provider:
+    vault:
+      server: http://openbao.openbao.svc:8200
+      path: secret
+      version: v2
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: shop-api
+          serviceAccountRef:
+            name: shop-api
+            audiences: [openbao]
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-db-eso
+  namespace: shop
+spec:
+  refreshInterval: 15s          # Lab: kurz, damit man es sieht
+  secretStoreRef: {kind: SecretStore, name: openbao}
+  target: {name: shop-db-eso}
+  data:
+  - secretKey: db_password
+    remoteRef: {key: shop/api, property: db_password}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-eso
+  namespace: shop
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-eso}
+  template:
+    metadata:
+      labels: {app: shop-api-eso}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: app
+        image: busybox:1.37
+        command: ["sh", "-c", "echo \"$(date +%T) env=$DB_PASSWORD\"; sleep 3600"]
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: shop-db-eso, key: db_password}

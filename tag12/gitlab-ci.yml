@@ -1,0 +1,15 @@
+deploy:
+  stage: deploy
+  image:
+    name: quay.io/openbao/openbao:2.7.1
+    entrypoint: [""]
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  id_tokens:
+    OPENBAO_ID_TOKEN:
+      aud: https://openbao.lab.example   # = bound_audiences der Rolle (Drill 3)
+  variables:
+    BAO_ADDR: https://openbao.example.com
+  script:
+    - ./ci/bao-secrets.sh

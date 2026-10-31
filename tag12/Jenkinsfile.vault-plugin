@@ -1,0 +1,13 @@
+def secrets = [
+  [path: 'secret/ci/deploy', engineVersion: 2, secretValues: [
+    [envVar: 'REGISTRY_PASSWORD', vaultKey: 'registry_password']]]
+]
+def configuration = [vaultUrl: 'https://openbao.example.com',
+                     vaultCredentialId: 'openbao-approle',
+                     engineVersion: 2]
+node('linux') {
+  withVault([configuration: configuration, vaultSecrets: secrets]) {
+    sh '''echo "$REGISTRY_PASSWORD" \
+      | docker login registry.example.com -u ci --password-stdin'''
+  }
+}

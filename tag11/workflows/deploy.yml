@@ -1,0 +1,29 @@
+name: deploy
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write   # ohne das kein OIDC-Token
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production   # sub = repo:acme/shop:environment:production
+    steps:
+      - uses: actions/checkout@v7
+      - name: Secrets aus OpenBao
+        id: bao
+        uses: hashicorp/vault-action@v4
+        with:
+          url: https://openbao.example.com
+          method: jwt
+          path: jwt-github
+          role: shop-prod
+          jwtGithubAudience: openbao
+          secrets: |
+            secret/data/ci/deploy registry_password | REGISTRY_PASSWORD ;
+            secret/data/ci/deploy kubeconfig_token | KUBE_TOKEN
+      - name: Registry-Login
+        run: |
+          echo "$REGISTRY_PASSWORD" | docker login registry.example.com \
+            -u ci --password-stdin

@@ -1,0 +1,16 @@
+# Tag 3: alle Keys eines Pfads auf einmal (dataFrom.extract)
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-api-all
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-api-all
+  dataFrom:
+    - extract:
+        key: shop/api

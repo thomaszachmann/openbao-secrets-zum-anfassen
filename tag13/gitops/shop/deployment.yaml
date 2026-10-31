@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api-gitops
+  namespace: shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api-gitops}
+  template:
+    metadata:
+      labels: {app: shop-api-gitops}
+    spec:
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", "echo Secret da: ${DB_PASSWORD:+ja}; sleep 3600"]
+          envFrom:
+            - secretRef:
+                name: shop-api-gitops

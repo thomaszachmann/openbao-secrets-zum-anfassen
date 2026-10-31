@@ -1,0 +1,38 @@
+# Anhang B, A5: Injector rendert eine Env-Datei, Agent mit projiziertem Token
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-api
+  namespace: billing
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: billing-api}
+  template:
+    metadata:
+      labels: {app: billing-api}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "billing"
+        vault.hashicorp.com/agent-service-account-token-volume-name: "bao-token"
+        vault.hashicorp.com/agent-inject-secret-env: "secret/data/billing/app"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{- with secret "secret/data/billing/app" -}}
+          export API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-perms-env: "0400"
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: billing
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", ". /vault/secrets/env && exec sleep 3600"]
+      volumes:
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

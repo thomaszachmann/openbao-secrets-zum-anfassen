@@ -1,0 +1,13 @@
+# Lab-Werte: OpenBao im Dev-Modus (In-Memory, Root-Token "root") – nie produktiv!
+server:
+  dev:
+    enabled: true
+    devRootToken: "root"
+  dataStorage:
+    enabled: false
+injector:
+  enabled: true
+csi:
+  enabled: false   # ab Tag 6: true
+ui:
+  enabled: false

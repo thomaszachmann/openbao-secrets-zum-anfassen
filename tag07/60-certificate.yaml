@@ -1,0 +1,16 @@
+# Tag 7: Zertifikat für api.shop.svc aus der OpenBao-PKI
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shop-api-tls
+  namespace: shop
+spec:
+  secretName: shop-api-tls
+  commonName: api.shop.svc
+  dnsNames:
+    - api.shop.svc
+  duration: 24h
+  renewBefore: 8h
+  issuerRef:
+    name: openbao
+    kind: Issuer

@@ -1,0 +1,35 @@
+# Tag 4: Generator VaultDynamicSecret – holt bei jedem Refresh neue DB-Credentials
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: VaultDynamicSecret
+metadata:
+  name: shop-db-creds
+  namespace: shop
+spec:
+  path: database/creds/shop-ro
+  method: GET
+  provider:
+    server: http://openbao.openbao.svc:8200
+    auth:
+      kubernetes:
+        mountPath: kubernetes
+        role: shop-db
+        serviceAccountRef:
+          name: shop-api
+          audiences:
+            - openbao
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-db-dynamic
+  namespace: shop
+spec:
+  refreshInterval: 2m
+  target:
+    name: shop-db-dynamic
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: VaultDynamicSecret
+          name: shop-db-creds

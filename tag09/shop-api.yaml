@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api}
+  template:
+    metadata:
+      labels: {app: shop-api}
+    spec:
+      serviceAccountName: shop-api
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: app
+        image: busybox:1.37
+        command: ["sh", "-c"]
+        args:
+        - while true; do
+            echo "$(date +%T) env=$DB_PASSWORD
+            vol=$(cat /etc/shop/db_password)
+            subpath=$(cat /etc/db_password)";
+            sleep 5;
+          done
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: shop-db, key: db_password}
+        volumeMounts:
+        - {name: db, mountPath: /etc/shop, readOnly: true}
+        - {name: db, mountPath: /etc/db_password, subPath: db_password,
+           readOnly: true}
+      volumes:
+      - name: db
+        secret: {secretName: shop-db}

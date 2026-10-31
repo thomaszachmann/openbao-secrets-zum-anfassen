@@ -1,0 +1,33 @@
+# Tag 5, Drill 3: eigenes projiziertes Token mit Audience "openbao" für den Agent
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api}
+  template:
+    metadata:
+      labels: {app: shop-api}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "shop-api"
+        vault.hashicorp.com/agent-inject-secret-api: "secret/data/shop/api"
+        vault.hashicorp.com/agent-service-account-token-volume-name: "bao-token"
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", "sleep 3600"]
+      volumes:
+        - name: bao-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: openbao
+                  expirationSeconds: 600

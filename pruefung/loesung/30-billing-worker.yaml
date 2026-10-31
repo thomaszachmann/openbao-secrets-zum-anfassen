@@ -1,0 +1,26 @@
+# Anhang B, A7: Env aus billing-db, Reloader startet bei Änderung neu
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-worker
+  namespace: billing
+  annotations:
+    secret.reloader.stakater.com/reload: billing-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: billing-worker}
+  template:
+    metadata:
+      labels: {app: billing-worker}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c"]
+          args: ["echo \"start ***${DB_PASSWORD#lab-billing-}\"; sleep 3600"]
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: billing-db, key: DB_PASSWORD}

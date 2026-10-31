@@ -1,0 +1,18 @@
+# Tag 3: ExternalSecret über den ClusterSecretStore
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-stripe
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao-shop
+  target:
+    name: shop-stripe
+  data:
+    - secretKey: STRIPE_TOKEN
+      remoteRef:
+        key: shop/stripe
+        property: token

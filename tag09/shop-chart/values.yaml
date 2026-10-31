@@ -1,0 +1,1 @@
+dbPassword: ""   # kommt per --set aus OpenBao, nie in Git

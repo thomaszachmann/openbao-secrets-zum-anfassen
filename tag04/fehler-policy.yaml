@@ -1,0 +1,16 @@
+# Tag 4 (Fehler 3): Pfad außerhalb der Policy shop-api-read
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: kaputt-policy
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: kaputt-policy
+  dataFrom:
+    - extract:
+        key: ci/deploy

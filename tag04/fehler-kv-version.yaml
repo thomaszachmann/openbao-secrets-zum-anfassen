@@ -1,0 +1,36 @@
+# Tag 4 (Fehler 2): KV-Version v1 gegen einen KV-v2-Mount
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: kaputt-kv1
+  namespace: shop
+spec:
+  provider:
+    vault:
+      server: http://openbao.openbao.svc:8200
+      path: secret
+      version: v1
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: shop-api
+          serviceAccountRef:
+            name: shop-api
+            audiences:
+              - openbao
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: kaputt-kv1
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: kaputt-kv1
+  target:
+    name: kaputt-kv1
+  dataFrom:
+    - extract:
+        key: shop/api

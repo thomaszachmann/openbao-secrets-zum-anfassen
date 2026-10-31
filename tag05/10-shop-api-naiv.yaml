@@ -1,0 +1,24 @@
+# Tag 5, Drill 2: erster Versuch – nur die drei Pflicht-Annotationen
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-api
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-api}
+  template:
+    metadata:
+      labels: {app: shop-api}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "shop-api"
+        vault.hashicorp.com/agent-inject-secret-api: "secret/data/shop/api"
+    spec:
+      terminationGracePeriodSeconds: 2
+      serviceAccountName: shop-api
+      containers:
+        - name: app
+          image: busybox:1.37
+          command: ["sh", "-c", "sleep 3600"]

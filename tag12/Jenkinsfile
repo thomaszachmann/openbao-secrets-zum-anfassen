@@ -1,0 +1,24 @@
+pipeline {
+  agent { label 'linux' }
+  environment {
+    BAO_ADDR = 'https://openbao.example.com'
+  }
+  stages {
+    stage('Deploy') {
+      steps {
+        withCredentials([
+          string(credentialsId: 'openbao-role-id', variable: 'ROLE_ID'),
+          string(credentialsId: 'openbao-issuer-token', variable: 'ISSUER_TOKEN')
+        ]) {
+          sh '''#!/bin/bash
+            set +x
+            source ci/bao-login.sh
+            bao kv get -field=registry_password secret/ci/deploy \
+              | docker login registry.example.com -u ci --password-stdin
+            bao token revoke -self
+          '''
+        }
+      }
+    }
+  }
+}

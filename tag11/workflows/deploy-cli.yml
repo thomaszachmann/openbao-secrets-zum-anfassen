@@ -1,0 +1,31 @@
+name: deploy-cli
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      BAO_ADDR: https://openbao.example.com
+      BAO_AUTH_PATH: jwt-github
+      BAO_VERSION: 2.7.1
+    steps:
+      - uses: actions/checkout@v7
+      - name: bao installieren
+        run: |
+          base=https://github.com/openbao/openbao/releases/download/v$BAO_VERSION
+          curl -sSfLO "$base/openbao_${BAO_VERSION}_linux_amd64.tar.gz"
+          curl -sSfLO "$base/checksums.txt"
+          sha256sum --ignore-missing -c checksums.txt
+          tar xzf "openbao_${BAO_VERSION}_linux_amd64.tar.gz" bao
+          sudo install bao /usr/local/bin/bao
+      - name: Secrets holen
+        run: ./ci/get-secrets.sh
+      - name: Registry-Login
+        run: |
+          echo "$REGISTRY_PASSWORD" | docker login registry.example.com \
+            -u ci --password-stdin

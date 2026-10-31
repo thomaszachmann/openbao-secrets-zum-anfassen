@@ -1,0 +1,6 @@
+# Ergänzt ~/secrets-lab/setup/openbao-values.yaml um ein Audit-Device (Lab)
+server:
+  extraArgs: "-config=/openbao/userconfig/openbao-audit/audit.hcl"
+  extraVolumes:
+  - type: configMap
+    name: openbao-audit

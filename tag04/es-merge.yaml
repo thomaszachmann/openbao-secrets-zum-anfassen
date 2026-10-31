@@ -1,0 +1,19 @@
+# Tag 4: creationPolicy Merge – Keys in ein vorhandenes Secret einmischen
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-settings
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-settings
+    creationPolicy: Merge
+  data:
+    - secretKey: STRIPE_TOKEN
+      remoteRef:
+        key: shop/stripe
+        property: token

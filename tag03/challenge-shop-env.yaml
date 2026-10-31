@@ -1,0 +1,30 @@
+# Tag 3 Challenge: alle Keys aus shop/api und shop/stripe als SHOP_*-Keys (groß)
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-env
+  namespace: shop
+spec:
+  refreshInterval: 30s
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-env
+  dataFrom:
+    - extract:
+        key: shop/api
+      rewrite:
+        - regexp:
+            source: "(.*)"
+            target: "SHOP_$1"
+        - transform:
+            template: "{{ .value | upper }}"
+    - extract:
+        key: shop/stripe
+      rewrite:
+        - regexp:
+            source: "(.*)"
+            target: "SHOP_STRIPE_$1"
+        - transform:
+            template: "{{ .value | upper }}"

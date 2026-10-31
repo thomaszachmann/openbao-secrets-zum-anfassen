@@ -1,0 +1,7 @@
+# Lab-Werte (Tag 3): External Secrets Operator, eine Replika je Komponente
+installCRDs: true
+replicaCount: 1
+webhook:
+  replicaCount: 1
+certController:
+  replicaCount: 1

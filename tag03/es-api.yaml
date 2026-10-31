@@ -1,0 +1,22 @@
+# Tag 3: einzelne Keys aus secret/shop/api in ein K8s-Secret holen
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-api
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-api-db
+  data:
+    - secretKey: DB_USER
+      remoteRef:
+        key: shop/api
+        property: db_user
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: shop/api
+        property: db_password

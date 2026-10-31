@@ -1,0 +1,32 @@
+# Anhang B, A4: SecretStore pro Namespace + ExternalSecret billing-db
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: openbao
+  namespace: billing
+spec:
+  provider:
+    vault:
+      server: http://openbao.openbao.svc:8200
+      path: secret
+      version: v2
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: billing
+          serviceAccountRef:
+            name: billing
+            audiences: [openbao]
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: billing-db
+  namespace: billing
+spec:
+  refreshInterval: 30s
+  secretStoreRef: {kind: SecretStore, name: openbao}
+  target: {name: billing-db}
+  data:
+  - secretKey: DB_PASSWORD
+    remoteRef: {key: billing/app, property: db_password}

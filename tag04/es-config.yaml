@@ -1,0 +1,30 @@
+# Tag 4: Konfigdatei aus mehreren Keys rendern (target.template, engineVersion v2)
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-config
+  namespace: shop
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: SecretStore
+    name: openbao
+  target:
+    name: shop-config
+    template:
+      engineVersion: v2
+      metadata:
+        labels:
+          app: shop-api
+      data:
+        application.properties: |
+          db.url=jdbc:postgresql://postgres.shop.svc:5432/shop
+          db.user={{ .db_user }}
+          db.password={{ .db_password }}
+          payment.token={{ .token }}
+          api.key={{ .api_key | upper }}
+  dataFrom:
+    - extract:
+        key: shop/api
+    - extract:
+        key: shop/stripe

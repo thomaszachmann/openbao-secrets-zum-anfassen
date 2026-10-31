@@ -1,0 +1,21 @@
+# Tag 6: SecretProviderClass für den OpenBao-CSI-Provider (Lab-Werte)
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: shop-api-bao
+  namespace: shop
+spec:
+  provider: openbao
+  parameters:
+    baoAddress: "http://openbao.openbao.svc:8200"
+    roleName: "shop-api"
+    audience: "openbao"
+    objects: |
+      - objectName: "db_password"
+        secretPath: "secret/data/shop/api"
+        secretKey: "db_password"
+      - objectName: "api_key"
+        secretPath: "secret/data/shop/api"
+        secretKey: "api_key"
+      - objectName: "stripe.json"
+        secretPath: "secret/data/shop/stripe"

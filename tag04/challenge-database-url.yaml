@@ -1,0 +1,22 @@
+# Tag 4 Challenge: DATABASE_URL aus dynamischen Credentials rendern
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: shop-database-url
+  namespace: shop
+spec:
+  refreshInterval: 5m
+  target:
+    name: shop-database-url
+    template:
+      engineVersion: v2
+      data:
+        DATABASE_URL: |-
+          postgresql://{{ .username }}:{{ .password | urlquery -}}
+          @postgres.shop.svc:5432/shop?sslmode=disable
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: VaultDynamicSecret
+          name: shop-db-creds
